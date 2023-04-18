@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from routes.user import user
+from routes.user import estudiante
 
 app = FastAPI()
 
-app.include_router(user)
+app.include_router(estudiante)
