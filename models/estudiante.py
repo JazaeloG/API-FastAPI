@@ -1,6 +1,6 @@
 from datetime import datetime 
 from sqlalchemy import Table, Column, Integer,String, Text, DateTime
-from config.db import meta_data, engine
+from config.db import meta_data, engine 
 
 estudiantes = Table("estudiantes", meta_data,
               Column('id', Integer, primary_key=True),
