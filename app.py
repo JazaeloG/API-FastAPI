@@ -4,14 +4,17 @@ from dotenv import load_dotenv
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
-
 app = FastAPI(
-    title="REST API to Automation Documents by UV",
+    title="REST API to UVirtual by UV",
     description="By ISW UV",
     version="0.1",
 )
 
-origins = ["*"]
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost:8080",
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,5 +27,5 @@ app.add_middleware(
 app.include_router(estudianteRouter)
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=8080, host="0.0.0.0")
-    #uvicorn.run(app, port=8080, host="127.0.0.1")
+    #uvicorn.run(app, port=8080, host="0.0.0.0")
+    uvicorn.run(app, port=8080, host="127.0.0.1")

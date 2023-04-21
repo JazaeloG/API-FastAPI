@@ -12,6 +12,8 @@ from fastapi import APIRouter, Response, Header
 
 from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT,HTTP_401_UNAUTHORIZED
 
+
+from typing import List
 estudianteRouter = APIRouter()
 
 
@@ -19,15 +21,34 @@ estudianteRouter = APIRouter()
  - Te falto retornar la respuesta del servidor
  return result
 """
-@estudianteRouter.get("/estudiantes")
-def get_uestudiantes():
+@estudianteRouter.get("/estudiantes", response_model=List[Estudiante])
+def get_estudiantes():
     try:
         with engine.connect() as conn:
             result = conn.execute(estudiantes.select()).fetchall()
-            print(result)
-            print("--------------")
-            return result # <--  De lo contrario nunca te devuelve nada
+            estudiantes_list = []
+            for row in result:
+                estudiante_dict = {
+                    "id": row[0],
+                    "matricula": row[1],
+                    "contraseña": row[2],
+                    "nombre": row[3],
+                    "correo": row[4],
+                    "campus": row[5],
+                    "semestre": row[6],
+                    "telefono": row[7],
+                    "foto_perfil": row[8],
+                }
+                estudiante = Estudiante(**estudiante_dict)
+                estudiantes_list.append(estudiante)
+            
+             # Iterar sobre la lista de estudiantes e imprimir cada uno de ellos
+            for estudiante in estudiantes_list:
+                print(estudiante.dict())
+            
+            return estudiantes_list
     except Exception as exception_error:
+        print(".................")
         return Response(status_code= SERVER_ERROR )
    
 
@@ -35,7 +56,7 @@ def get_uestudiantes():
 def create_estudiante(data_estudiante: Estudiante):
     try:
         with engine.connect() as conn:
-           """
+            """
             Lo ideal seria verificar si ya existe un estudiante con esa matricula / correo registrado
             antes de crear otro para ello hacemos:
             
@@ -75,10 +96,9 @@ def create_estudiante(data_estudiante: Estudiante):
                 return Response(status_code=HTTP_401_UNAUTHORIZED)
             
             new_estudiante = data_estudiante.dict()
-            
-            #new_estudiante["contrasena"] = generate_password_hash(data_estudiante.contrasena, "pbkdf2:sha256:30", 30)
-            conn.execute(estudiantes.insert().values(new_estudiante))
             print(new_estudiante)
+            conn.execute(estudiantes.insert().values(new_estudiante))
+            conn.commit()
         return Response(status_code=HTTP_201_CREATED)
     except Exception as exception_error:
         return Response(status_code= SERVER_ERROR )

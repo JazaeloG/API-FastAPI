@@ -3,11 +3,6 @@ from sqlalchemy import Table, Column, Integer,String, Text, DateTime
 from config.db import meta_data, engine 
 
 
-"""
-    - Tienes dos veces la tabla telefono
-    - En el schema tienes telefono como optional y aqui como no null
-        asi que lo cambie a que puede ser null para que pueda ser opcional
-"""
 
 estudiantes = Table("estudiantes", meta_data,
     Column('id', Integer, primary_key=True),
@@ -19,8 +14,7 @@ estudiantes = Table("estudiantes", meta_data,
     Column("semestre", Integer, nullable=False),
     Column("telefono", String(15)),
     #Column("telefono", String(15), nullable=False)
-    Column('foto_perfil', Text),
-    Column('fecha_de_creacion',DateTime(), default = datetime.now()),
+    Column('foto_perfil', Text)
 )
 
 meta_data.bind = engine
