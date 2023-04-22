@@ -4,16 +4,17 @@ from xmlrpc.client import SERVER_ERROR
 # from fastapi.responses import JSONResponse
 # from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
 # from werkzeug.security import generate_password_hash, check_password_hash
-
+import logging
 from config.db import conn, engine
 from models.estudiante import estudiantes
 from schemas.estudiante import Estudiante
 from fastapi import APIRouter, Response, Header
 
 from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT,HTTP_401_UNAUTHORIZED
-
-
 from typing import List
+
+from library.uv_library.bot.login import get_user_uv
+
 estudianteRouter = APIRouter()
 
 
@@ -46,11 +47,43 @@ def get_estudiantes():
             for estudiante in estudiantes_list:
                 print(estudiante.dict())
             
+        if(result):
+            logging.info(f"Se obtuvo información de todos los estudiantes")
             return estudiantes_list
+        else:
+            return Response(status_code=HTTP_204_NO_CONTENT)
     except Exception as exception_error:
-        print(".................")
+        logging.error(f"Error al obtener información de los estudiantes ||| {exception_error}") 
         return Response(status_code= SERVER_ERROR )
    
+@estudianteRouter.get("/estudiante/estudiante/{id_estudiante}", response_model=Estudiante)
+def get_estudiante_by_id_estudiante(id_estudiante: int):
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(estudiantes.select().where(estudiantes.c.id == id_estudiante)).first()
+            estudiante_dict = {
+                "id": result[0],
+                "matricula": result[1],
+                "contraseña": result[2],
+                "nombre": result[3],
+                "correo": result[4],
+                "campus": result[5],
+                "semestre": result[6],
+                "telefono": result[7],
+                "foto_perfil": result[8],
+            }
+            estudiante = Estudiante(**estudiante_dict)
+            if result:
+                logging.info(f"Se obtuvo información del estudiante con el ID: {id_estudiante}")
+                return estudiante
+            else:
+                return Response(status_code=HTTP_204_NO_CONTENT)
+    except Exception as exception_error:
+        logging.error(f"Error al obtener información del estudiante con el ID : {id_estudiante} ||| {exception_error}") 
+        return Response(status_code=SERVER_ERROR)
+
+
+
 
 @estudianteRouter.post("/estudiantes")
 def create_estudiante(data_estudiante: Estudiante):
