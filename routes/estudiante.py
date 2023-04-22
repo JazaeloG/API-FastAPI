@@ -26,7 +26,27 @@ def get_estudiantes():
     try:
         with engine.connect() as conn:
             result = conn.execute(estudiantes.select()).fetchall()
-            return return
+            estudiantes_list = []
+            for row in result:
+                estudiante_dict = {
+                    "id": row[0],
+                    "matricula": row[1],
+                    "contraseña": row[2],
+                    "nombre": row[3],
+                    "correo": row[4],
+                    "campus": row[5],
+                    "semestre": row[6],
+                    "telefono": row[7],
+                    "foto_perfil": row[8],
+                }
+                estudiante = Estudiante(**estudiante_dict)
+                estudiantes_list.append(estudiante)
+            
+             # Iterar sobre la lista de estudiantes e imprimir cada uno de ellos
+            for estudiante in estudiantes_list:
+                print(estudiante.dict())
+            
+            return estudiantes_list
     except Exception as exception_error:
         print(".................")
         return Response(status_code= SERVER_ERROR )
