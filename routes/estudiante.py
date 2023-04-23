@@ -15,6 +15,10 @@ from typing import List
 
 from library.uv_library.bot.login import get_user_uv
 
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from functions_jwt import write_token, validate_token
+import json
 estudianteRouter = APIRouter()
 
 
@@ -138,9 +142,8 @@ def create_estudiante(data_estudiante: Estudiante):
 
 @estudianteRouter.post("/estudiante", status_code=HTTP_201_CREATED)
 def estudiantes_ingresar_al_sistema(estudiantes_auth : EstudianteAuth):
-    print("______________")
-    with engine.connect() as conn:
-        print("______________")
+    
+    with engine.connect() as conn:  
         if(estudiantes_auth.correo != None):
             result = conn.execute(estudiantes.select().where(estudiantes.c.correo == estudiantes_auth.correo )).first()
         if(estudiantes_auth.matricula != None):
@@ -148,7 +151,7 @@ def estudiantes_ingresar_al_sistema(estudiantes_auth : EstudianteAuth):
         print(result)
         if result != None:
             print(result)
-            check_passw = check_password_hash(result[6], estudiantes_auth.contraseña)
+            check_passw = check_password_hash(result[2], estudiantes_auth.contraseña)
             if check_passw:
                 return {
                 "status": 200,
@@ -159,40 +162,39 @@ def estudiantes_ingresar_al_sistema(estudiantes_auth : EstudianteAuth):
             else:
                 return Response(status_code=HTTP_401_UNAUTHORIZED)
         
-        
         if(result == None):
             if(estudiantes_auth.matricula != None):
                 student_by_miuv = get_user_uv(user=estudiantes_auth.matricula,password=estudiantes_auth.contraseña)
-                if(student_by_miuv["nombre"]):
+                student_dic = json.loads(student_by_miuv)
+                
+                if "nombre" in student_dic:
                     with engine.connect() as conn:
                         new_estudiante = Estudiante
-                        new_estudiante.id_carreras = int(result_id_carrera[0])
-                        new_estudiante.id_facultades = int(result_id_facultad[0])
-                        new_estudiante.nombre_completo =  student_by_miuv["nombre"]
-                        new_estudiante.telefono =  student_by_miuv["telefono"]
-                        new_estudiante.foto_perfil =  student_by_miuv["foto_perfil"]
-                        new_estudiante.correo =  student_by_miuv["correo"]
-                        new_estudiante.semestre = int(student_by_miuv["periodo_actual"])
+                        new_estudiante.nombre =  student_dic["nombre"]
+                        new_estudiante.telefono =  student_dic["residence_information"]["teléfono"]
+                        new_estudiante.foto_perfil =  student_dic["student_photo_profile"]
+                        new_estudiante.correo =  student_dic["personal_information"]["correo_institucional"]
+                        new_estudiante.campus =  student_dic["academic_information"]["campus"]
+                        new_estudiante.semestre = int(student_dic["academic_information"]["periodos_cursados"])
                         new_estudiante.matricula =  estudiantes_auth.matricula
                         new_estudiante.contraseña = generate_password_hash(estudiantes_auth.contraseña, "pbkdf2:sha256:30", 30)
                         
-                     
+                        print(new_estudiante)
                         #result_create = conn.execute(estudiantes.insert().values(new_estudiante))
                         
                         result_create = conn.execute(estudiantes.insert().values(                
-                            id_carreras = int(result_id_carrera[0]),
-                            id_facultades = int(result_id_facultad[0]),
-                            nombre_completo = student_by_miuv["nombre"],
                             matricula = estudiantes_auth.matricula,
-                            correo = student_by_miuv["correo"],
                             contraseña = generate_password_hash(estudiantes_auth.contraseña, "pbkdf2:sha256:30", 30),
-                            semestre =  int(student_by_miuv["periodo_actual"]),
-                            telefono = student_by_miuv["telefono"],
-                            foto_perfil = student_by_miuv["foto_perfil"],
+                            nombre = student_dic["nombre"],
+                            correo = student_dic["personal_information"]["correo_institucional"],
+                            campus = student_dic["academic_information"]["campus"],
+                            semestre =  int(student_dic["academic_information"]["periodos_cursados"]),
+                            telefono = student_dic["residence_information"]["teléfono"],
+                            foto_perfil = student_dic["student_photo_profile"],
                         ))
-                        
-                        
-                        logging.info(f"Estudiante {new_estudiante.nombre_completo} creado correctamente")
+                        print(result_create)
+                        conn.commit()
+                        logging.info(f"Estudiante {new_estudiante.nombre} creado correctamente")
                         if result_create:
                             return {
                                 "status": 200,
