@@ -13,3 +13,12 @@ class Estudiante(BaseModel):
     telefono: Optional[str]
     foto_perfil: Optional[str]
 
+class EstudianteSettings(BaseModel):
+    contrasena: str
+    telefono: str
+    foto_perfil: Optional[str]
+    
+class EstudianteAuth(BaseModel):
+    matricula: Optional[str]
+    correo : Optional[EmailStr]
+    contraseña: str

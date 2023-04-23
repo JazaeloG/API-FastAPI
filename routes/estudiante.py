@@ -7,7 +7,7 @@ from xmlrpc.client import SERVER_ERROR
 import logging
 from config.db import conn, engine
 from models.estudiante import estudiantes
-from schemas.estudiante import Estudiante
+from schemas.estudiante import Estudiante, EstudianteAuth
 from fastapi import APIRouter, Response, Header
 
 from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT,HTTP_401_UNAUTHORIZED
@@ -135,3 +135,76 @@ def create_estudiante(data_estudiante: Estudiante):
         return Response(status_code=HTTP_201_CREATED)
     except Exception as exception_error:
         return Response(status_code= SERVER_ERROR )
+
+@estudianteRouter.post("/estudiante", status_code=HTTP_201_CREATED)
+def estudiantes_ingresar_al_sistema(estudiantes_auth : EstudianteAuth):
+    print("______________")
+    with engine.connect() as conn:
+        print("______________")
+        if(estudiantes_auth.correo != None):
+            result = conn.execute(estudiantes.select().where(estudiantes.c.correo == estudiantes_auth.correo )).first()
+        if(estudiantes_auth.matricula != None):
+            result = conn.execute(estudiantes.select().where(estudiantes.c.matricula == estudiantes_auth.matricula )).first()
+        print(result)
+        if result != None:
+            print(result)
+            check_passw = check_password_hash(result[6], estudiantes_auth.contraseña)
+            if check_passw:
+                return {
+                "status": 200,
+                "message": "Access success",
+                "token" : write_token(estudiantes_auth.dict()),
+                "user" : result
+                }
+            else:
+                return Response(status_code=HTTP_401_UNAUTHORIZED)
+        
+        
+        if(result == None):
+            if(estudiantes_auth.matricula != None):
+                student_by_miuv = get_user_uv(user=estudiantes_auth.matricula,password=estudiantes_auth.contraseña)
+                if(student_by_miuv["nombre"]):
+                    with engine.connect() as conn:
+                        new_estudiante = Estudiante
+                        new_estudiante.id_carreras = int(result_id_carrera[0])
+                        new_estudiante.id_facultades = int(result_id_facultad[0])
+                        new_estudiante.nombre_completo =  student_by_miuv["nombre"]
+                        new_estudiante.telefono =  student_by_miuv["telefono"]
+                        new_estudiante.foto_perfil =  student_by_miuv["foto_perfil"]
+                        new_estudiante.correo =  student_by_miuv["correo"]
+                        new_estudiante.semestre = int(student_by_miuv["periodo_actual"])
+                        new_estudiante.matricula =  estudiantes_auth.matricula
+                        new_estudiante.contraseña = generate_password_hash(estudiantes_auth.contraseña, "pbkdf2:sha256:30", 30)
+                        
+                     
+                        #result_create = conn.execute(estudiantes.insert().values(new_estudiante))
+                        
+                        result_create = conn.execute(estudiantes.insert().values(                
+                            id_carreras = int(result_id_carrera[0]),
+                            id_facultades = int(result_id_facultad[0]),
+                            nombre_completo = student_by_miuv["nombre"],
+                            matricula = estudiantes_auth.matricula,
+                            correo = student_by_miuv["correo"],
+                            contraseña = generate_password_hash(estudiantes_auth.contraseña, "pbkdf2:sha256:30", 30),
+                            semestre =  int(student_by_miuv["periodo_actual"]),
+                            telefono = student_by_miuv["telefono"],
+                            foto_perfil = student_by_miuv["foto_perfil"],
+                        ))
+                        
+                        
+                        logging.info(f"Estudiante {new_estudiante.nombre_completo} creado correctamente")
+                        if result_create:
+                            return {
+                                "status": 200,
+                                "message": "Access success",
+                                "token" : write_token(estudiantes_auth.dict()),
+                                "user" : result
+                                }
+                        else:
+                            return {
+                                "status": 404,
+                                "message": "User not found",
+                                }
+                            
+        else:
+            return JSONResponse(content={"message": "User not found"}, status_code=404)
