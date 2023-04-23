@@ -9,16 +9,13 @@ from config.db import conn, engine
 from models.estudiante import estudiantes
 from schemas.estudiante import Estudiante, EstudianteAuth
 from fastapi import APIRouter, Response, Header
-
 from starlette.status import HTTP_201_CREATED, HTTP_204_NO_CONTENT,HTTP_401_UNAUTHORIZED
 from typing import List
-
 from library.uv_library.bot.login import get_user_uv
-
-from werkzeug.security import generate_password_hash, check_password_hash
-
 from functions_jwt import write_token, validate_token
+from werkzeug.security import generate_password_hash, check_password_hash
 import json
+
 estudianteRouter = APIRouter()
 
 
