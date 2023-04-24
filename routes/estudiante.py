@@ -134,6 +134,7 @@ def create_estudiante(data_estudiante: Estudiante):
 
 @estudianteRouter.post("/estudiante", status_code=HTTP_201_CREATED)
 def estudiantes_ingresar_al_sistema(estudiantes_auth : EstudianteAuth):
+    
     with engine.connect() as conn:  
         if(estudiantes_auth.correo != None):
             result = conn.execute(estudiantes.select().where(estudiantes.c.correo == estudiantes_auth.correo )).first()
@@ -141,9 +142,9 @@ def estudiantes_ingresar_al_sistema(estudiantes_auth : EstudianteAuth):
             result = conn.execute(estudiantes.select().where(estudiantes.c.matricula == estudiantes_auth.matricula )).first()
         
         if result != None:
+            
             check_passw = check_password_hash(result[2], estudiantes_auth.contraseña)
             if check_passw:
-                print(check_passw)
                 return {
                 "status": 200,
                 "message": "Access success",
@@ -160,6 +161,19 @@ def estudiantes_ingresar_al_sistema(estudiantes_auth : EstudianteAuth):
                 
                 if "nombre" in student_dic:
                     with engine.connect() as conn:
+                        new_estudiante = Estudiante
+                        new_estudiante.nombre =  student_dic["nombre"]
+                        new_estudiante.telefono =  student_dic["residence_information"]["teléfono"]
+                        new_estudiante.foto_perfil =  student_dic["student_photo_profile"]
+                        new_estudiante.correo =  student_dic["personal_information"]["correo_institucional"]
+                        new_estudiante.campus =  student_dic["academic_information"]["campus"]
+                        new_estudiante.semestre = int(student_dic["academic_information"]["periodos_cursados"])
+                        new_estudiante.matricula =  estudiantes_auth.matricula
+                        new_estudiante.contraseña = generate_password_hash(estudiantes_auth.contraseña, "pbkdf2:sha256:30", 30)
+                        
+                        print(new_estudiante)
+                        #result_create = conn.execute(estudiantes.insert().values(new_estudiante))
+                        
                         result_create = conn.execute(estudiantes.insert().values(                
                             matricula = estudiantes_auth.matricula,
                             contraseña = generate_password_hash(estudiantes_auth.contraseña, "pbkdf2:sha256:30", 30),
