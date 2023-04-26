@@ -1,6 +1,6 @@
 
 from xmlrpc.client import SERVER_ERROR
-from library.uv_library.bot.login  import get_user_uv
+from uvirtual.uv_library.bot.login  import get_user_uv
 import logging
 from config.db import conn, engine
 from models.estudiante import estudiantes
@@ -85,40 +85,7 @@ def get_estudiante_by_id_estudiante(id_estudiante: int):
 def create_estudiante(data_estudiante: Estudiante):
     try:
         with engine.connect() as conn:
-            """
-            Lo ideal seria verificar si ya existe un estudiante con esa matricula / correo registrado
-            antes de crear otro para ello hacemos:
             
-            -Seleccionar de la tabla estudiantes, donde ....
-                estudiantes.select().where 
-            
-            -La tabla estuddiantes, de la columna correo
-                estudiantes.c.correo
-                
-            - Es igual a lo que manda el usuario en el objeto data_estudiante en la parte de correo
-                == data_estudiante.correo
-                
-            - o checar si se encuentra la columna  matricula algun registro igual a lo que manda el usuario
-                or estudiantes.c.matricula == data_estudiante.matricula
-            
-            - Si hay registro ya de matricula o de correo la variable result contendrá algo, por lo tanto
-                responde el servidor como 401 SIN AUTORIZACIÓN 
-            
-            - Si no hay registro alguno podemos guardar nuestro registro para ello convertimos lo que el usuario nos manda
-            en un diccionario para que al insetar los valos haga la equivalencia del modelo y el esquema
-            
-                new_estudiante = data_estudiante.dict()
-                
-            - Y finalmente respondemos un estatus 201 para mostrar que los datos se han guardado correctamente
-                return Response(status_code=HTTP_201_CREATED)
-            
-            
-            --- NOta ---
-            - Si duante el proceso se presentó algun error retornamos un Error server, esto para que el programador del front 
-            pueda consultar los estados al consumir nuestra api rest
-
-            
-            """
             result = conn.execute(estudiantes.select().where(estudiantes.c.correo == data_estudiante.correo or estudiantes.c.matricula == data_estudiante.matricula)).first()    
             
             if result != None:

@@ -7,10 +7,12 @@ class Clase(BaseModel):
     nombre: str
     academico: str    
     facultad: str 
-    Edificio: str
-    Aula: int   
+    campus: str
+    edificio: str
+    aula: int   
     lunes: Optional[str]
     martes: Optional[str]
     miercoles: Optional[str]
     jueves: Optional[str]
     viernes: Optional[str]
+    sabado: Optional[str]
