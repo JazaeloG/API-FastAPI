@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from routes.estudiante import estudianteRouter
+from routes.clase import claseRouter
 from dotenv import load_dotenv
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,6 +27,7 @@ app.add_middleware(
 
 app.include_router(estudianteRouter)
 
+app.include_router(claseRouter)
 
 if __name__ == "__main__":
     #uvicorn.run(app, port=8080, host="0.0.0.0")
