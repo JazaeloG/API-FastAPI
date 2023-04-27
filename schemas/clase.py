@@ -9,7 +9,7 @@ class Clase(BaseModel):
     facultad: str 
     campus: str
     edificio: str
-    aula: int   
+    aula: str   
     lunes: Optional[str]
     martes: Optional[str]
     miercoles: Optional[str]
