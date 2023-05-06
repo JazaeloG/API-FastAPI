@@ -6,11 +6,11 @@ from config.db import meta_data, engine
 
 clases = Table("clases", meta_data,
     Column('id', Integer, primary_key=True),
-    Column("nrc", String(5), nullable=False),
+    Column("nrc", String(200), nullable=False),
     Column("nombre", String(200), nullable=False),
     Column("academico", String(200), nullable=False),
     Column("facultad", String(200), nullable=False),
-    Column("campus", String(200), nullable=False),
+    Column("campus", String(200)),
     Column('edificio', String(150), nullable=False),
     Column("aula", String(15), nullable=False),
     Column("lunes", String(15)),

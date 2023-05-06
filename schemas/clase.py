@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
@@ -7,7 +8,7 @@ class Clase(BaseModel):
     nombre: str
     academico: str    
     facultad: str 
-    campus: str
+    campus: Optional[str]
     edificio: str
     aula: str   
     lunes: Optional[str]
