@@ -59,7 +59,7 @@ def get_HorarioDocente_by_Docente(id_docente: int):
 
             result = conn.execute(sql).fetchall()
             if result:
-                horario_list = []
+                clases_list = []
                 for row in result:
                     clase_dict = {
                         "id": row[0],
@@ -72,17 +72,17 @@ def get_HorarioDocente_by_Docente(id_docente: int):
                         "aula": row[7]
                     }
                     dias_semana = ['lunes', 'martes', 'miercoles',
-                                   'jueves', 'viernes', 'sabado']
+                                'jueves', 'viernes', 'sabado']
 
-                    for i in range(len(clase_dict)-len(dias_semana)):
+                    for i in range(len(dias_semana)):
                         if row[8+i] is not None:
                             clase_dict[dias_semana[i]] = row[8+i]
 
                     clase = Clase(**clase_dict)
-                    horario_list.append(clase)
-                print(horario_list)
+                    clases_list.append(clase)
+                print(clases_list)
                 logging.info(f"Se obtuvo información de todas las clases")
-                return horario_list
+                return clases_list
             else:
                 return Response(status_code=HTTP_204_NO_CONTENT)
     except Exception as exception_error:

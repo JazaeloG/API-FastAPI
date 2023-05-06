@@ -6,6 +6,7 @@ from routes.clase import claseRouter
 from routes.docente import docenteRouter
 from routes.horarioEstudiante import horarioEstudiateRouter
 from routes.horarioDocente import horarioDocenteRouter
+from routes.horarioAula import horarioAulaRouter
 
 from routes.bitacora import bitacoraRouter
 
@@ -42,8 +43,11 @@ app.include_router(horarioDocenteRouter, prefix='/api/v1',
                    tags=["Horario Docente"])
 app.include_router(edificioRouter, prefix='/api/v1', tags=["Edificio"])
 app.include_router(aulaRouter, prefix='/api/v1', tags=["Aula"])
+app.include_router(horarioAulaRouter, prefix='/api/v1', tags=["Aula"])
+
 
 app.include_router(bitacoraRouter, prefix='/api/v1', tags=["Bitacoras"])
+app.include_router(horarioAulaRouter, prefix='/api/v1', tags=["Aula"])
 
 if __name__ == "__main__":
     # uvicorn.run(app, port=8080, host="0.0.0.0")

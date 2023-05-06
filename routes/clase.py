@@ -21,6 +21,10 @@ from schemas.aula import Aula
 from models.edificio import edificios
 from schemas.edificio import Edificio
 
+from models.horarioAula import horarioAulas
+from schemas.horarioAula import HorarioAula
+
+
 claseRouter = APIRouter()
 
 
@@ -163,8 +167,10 @@ def clases_ingresar_al_sistema(estudiantes_auth: EstudianteAuth):
                             edif = conn.execute(edificios.select().where(edificios.c.nombre == detalles["general"]["edificio"])).first()
                        
                         res= conn.execute(aulas.select().where(
-                            aulas.c.nombre == detalles["general"]["aula"])).first
+                            aulas.c.nombre == detalles["general"]["aula"])).first()
+                        print(res)
                         if res is None:
+                            print("aulas")
                             conn.execute(aulas.insert().values(
                                 nombre=detalles["general"]["aula"],
                                 id_edificio=edif.id
@@ -228,10 +234,13 @@ def clases_ingresar_al_sistema(estudiantes_auth: EstudianteAuth):
                             id_estudiante=id_estudiante,
                             id_clase=id_clase
                         ))
+                        print("guardar aula :)")
                         conn.commit()
                         result = conn.execute(aulas.select().where(
-                            aulas.c.nombre == detalles["general"]["aula"])).id
-                        result = conn.execute(aulas.insert().values(
+                            aulas.c.nombre == detalles["general"]["aula"])).first()
+                        print(result.id)
+                        print(id_clase)
+                        result = conn.execute(horarioAulas.insert().values(
                             id_aula=result.id,
                             id_clase= id_clase))
                         conn.commit()
