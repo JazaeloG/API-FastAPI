@@ -16,6 +16,10 @@ import json
 
 from models.horarioEstudiante import horarioEstudiantes
 from schemas.horarioEstudiante import HorarioEstudiante
+from models.aula import aulas
+from schemas.aula import Aula
+from models.edificio import edificios
+from schemas.edificio import Edificio
 
 claseRouter = APIRouter()
 
@@ -139,7 +143,36 @@ def clases_ingresar_al_sistema(estudiantes_auth: EstudianteAuth):
                     class_dict = json.loads(class_by_miuv)
                     dic = class_dict['clases']
                     for clase, detalles in dic.items():
+                        print("edifciio")
+                        edif = conn.execute(edificios.select().where(
+                            edificios.c.nombre == detalles["general"]["edificio"])).first()
+                        
+                        if edif is None:
+                            print("creara")
+                            new_edificio=Edificio
+                            new_edificio.nombre = detalles["general"]["edificio"]
+                            new_edificio.facultad=detalles["general"]["escuela"]
+                            new_edificio.campus=detalles["detalles"]["campus"]
+                            print(new_edificio)
+                            conn.execute(edificios.insert().values(
+                                nombre=new_edificio.nombre,
+                                facultad=new_edificio.facultad,
+                                campus=new_edificio.campus
+                            ))
+                            conn.commit()
+                            edif = conn.execute(edificios.select().where(edificios.c.nombre == detalles["general"]["edificio"])).first()
+                       
+                        res= conn.execute(aulas.select().where(
+                            aulas.c.nombre == detalles["general"]["aula"])).first
+                        if res is None:
+                            conn.execute(aulas.insert().values(
+                                nombre=detalles["general"]["aula"],
+                                id_edificio=edif.id
+                                ))
+                        
+                        conn.commit()
 
+                        print("clases")
                         nrc = clase
 
                         if (detalles["detalles"].get("nrc")) is not None:
@@ -185,15 +218,22 @@ def clases_ingresar_al_sistema(estudiantes_auth: EstudianteAuth):
                                 f"Clase {new_clase.nombre} creada correctamente")
 
                         print("guardar horario :)")
-                        result = conn.execute(estudiantes.select().where(estudiantes.c.matricula == estudiantes_auth.matricula)).first()
+                        result = conn.execute(estudiantes.select().where(
+                            estudiantes.c.matricula == estudiantes_auth.matricula)).first()
                         id_estudiante = result.id
                         result = conn.execute(clases.select().where(
                             clases.c.nrc == nrc)).first()
                         id_clase = result.id
                         result = conn.execute(horarioEstudiantes.insert().values(
-                            id_estudiante = id_estudiante,
-                            id_clase = id_clase
+                            id_estudiante=id_estudiante,
+                            id_clase=id_clase
                         ))
+                        conn.commit()
+                        result = conn.execute(aulas.select().where(
+                            aulas.c.nombre == detalles["general"]["aula"])).id
+                        result = conn.execute(aulas.insert().values(
+                            id_aula=result.id,
+                            id_clase= id_clase))
                         conn.commit()
 
                     return {

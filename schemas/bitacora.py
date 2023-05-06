@@ -7,7 +7,6 @@ class Bitacora(BaseModel):
     id_clase: int
     id_estudiante: int
     id_docente: int
-    edificio: str
-    aula: str
+    id_aula: int
     tipo: str
     hora: str

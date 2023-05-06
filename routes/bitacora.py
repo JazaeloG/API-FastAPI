@@ -14,11 +14,15 @@ from functions_jwt import write_token, validate_token
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 from sqlalchemy.sql import text
-from models.horarioDocente import horarioDocentes
-from schemas.horarioDocente import HorarioDocente
+from models.docente import docentes
+from schemas.docente import Docente
 
 from models.bitacora import bitacoras
 from schemas.bitacora import Bitacora
+
+from datetime import datetime
+
+
 
 bitacoraRouter = APIRouter()
 
@@ -39,7 +43,7 @@ def get_bitacora():
                     "tipo": row[4],
                     "hora": row[5]
                 }
-                
+
                 bitacora = Bitacora(**bitacora_dict)
                 bitacora_list.append(bitacora)
             if result:
@@ -84,21 +88,31 @@ def get_bitacora_by_id(id_clase: int):
 
 
 @bitacoraRouter.post("/bitacora")
-def registrar_entrada(id_user: int, id_aula:int):
+def registrar_entrada(id_user: str, id_aula: int):
     try:
         with engine.connect() as conn:
 
-            result = conn.execute(clases.select().where(
-                clases.c.nrc == data_clase.nrc)).first()
-            print(result)
-            if result != None:
-                return Response(status_code=HTTP_401_UNAUTHORIZED)
+            result = conn.execute(estudiantes.select().where(
+                estudiantes.c.matricula == id_user)).first()
+
+            new_bitacora = Bitacora
+            if result is not None:
+                print("alumno")
+                new_bitacora.id_estudiante = result.id
             else:
-                print("guardara")
-                new_clase = data_clase.dict()
-                conn.execute(clases.insert().values(new_clase))
-                conn.commit()
-                return Response(status_code=HTTP_201_CREATED)
+                result = conn.execute(docentes.select().where(
+                docentes.c.id == id_user)).first()
+            if result is not None:
+                print("docente")
+                new_bitacora.id_docente = result.id
+
+            if result is None:
+                return Response(status_code=HTTP_204_NO_CONTENT)
+            
+            hora_actual = datetime.now().time()
+            print("La hora actual es:", hora_actual)
+            print(result)
+
     except Exception as exception_error:
         logging.error(
             f"Error al crear la clase  ||| {exception_error}")

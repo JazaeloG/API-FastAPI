@@ -35,7 +35,8 @@ def get_estudiantes():
                 estudiante = Estudiante(**estudiante_dict)
                 estudiantes_list.append(estudiante)
             if (result):
-                logging.info(f"Se obtuvo información de todos los estudiantes")
+                logging.info(
+                    f"Se obtuvo información de todos los estudiantes")
                 return estudiantes_list
             else:
                 return Response(status_code=HTTP_204_NO_CONTENT)
@@ -51,7 +52,7 @@ def get_estudiante_by_id_estudiante(id_estudiante: int):
         with engine.connect() as conn:
             result = conn.execute(estudiantes.select().where(
                 estudiantes.c.id == id_estudiante)).first()
-           
+
             if result:
                 estudiante_dict = {
                     "id": result[0],
@@ -175,3 +176,10 @@ def estudiantes_ingresar_al_sistema(estudiantes_auth: EstudianteAuth):
             "status": 404,
             "message": "User not found",
         }
+
+
+@estudianteRouter.post("/estudiante/verify/token")
+def estudiantes_verificar_token(token_estudiante: str = Header(default=None)):
+    # token = user_token.split(' ')[1]
+    token = token_estudiante.split(" ")[0]
+    return validate_token(token_estudiante, output=True)
