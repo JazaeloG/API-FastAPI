@@ -76,12 +76,12 @@ En caso de no funcionar se puede instalar las librerias principales:
 ~~~
 
 
-# Crear imagen Docker de con Automation Documents
+# Crear imagen Docker de UVIRTUAL
 
 
 ## Construir la imagen apartir del archivo `Dockerfile`
 ~~~bash  
-   sudo docker build -t automation-documents:0.1 .
+   docker build -t uvirtual:0.1 .
 ~~~
 
 ## Verificar que se creó correctamente
@@ -93,7 +93,7 @@ En caso de no funcionar se puede instalar las librerias principales:
 ## Correr imagen creada 
 
 ~~~bash
-    sudo docker run --publish 1001:1001 --detach --name api-automation-documents automation-documents:0.1 
+    sudo docker run --publish 1001:1001 --detach --name api-uvirtual uvirtual:0.1 
 ~~~
 
 
@@ -114,7 +114,7 @@ En caso de no funcionar se puede instalar las librerias principales:
 ## Correr imagen de mysql asignando la contraseña
 
 ~~~bash
-    sudo docker run -d -p 3306:3306 --name mysql-db-container  -e MYSQL_ROOT_PASSWORD=Password.1 --mount src=mysql-db,dst=/var/lib/mysql mysql
+    sudo docker run -d -p 3306:3306 --name mysql-db-container  -e MYSQL_ROOT_PASSWORD=password --mount src=mysql-db,dst=/var/lib/mysql mysql
 ~~~
 
 ## Ingresar al gestor de base de datos para crear la base de datos
