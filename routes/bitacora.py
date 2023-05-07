@@ -59,7 +59,7 @@ def get_bitacora():
         return Response(status_code=SERVER_ERROR)
 
 
-@bitacoraRouter.get("/bitacora/bitacora/{id_clase}", response_model=List[Bitacora])
+@bitacoraRouter.get("/bitacora/clase/{id_clase}", response_model=List[Bitacora])
 def get_bitacora_by_id(id_clase: int):
     try:
         with engine.connect() as conn:
@@ -94,7 +94,48 @@ def get_bitacora_by_id(id_clase: int):
         return Response(status_code=SERVER_ERROR)
 
 
-@bitacoraRouter.get("/bitacora/bitacora/{id_aula}", response_model=List[Bitacora])
+
+@bitacoraRouter.get("/bitacora/dia/{id_clase}/{dia}", response_model=List[Bitacora])
+def get_bitacora_by_id(id_clase: int, dia: str):
+    try:
+        with engine.connect() as conn:
+
+            dia = datetime.strptime(dia, '%Y-%m-%d').date()
+            print(dia)
+            sql = text(
+                f"select * from bitacoras where id_clase='{id_clase}' and DATE(hora)='{dia}'")
+
+            result = conn.execute(sql).fetchall()
+            print(result)
+            if(result):
+                bitacora_list = []
+                for row in result:
+                    bitacora_dict = {
+                        "id": int(row[0]),
+                        "id_clase": int(row[1]),
+                        "id_estudiante": row[2],
+                        "id_docente": row[3],
+                        "id_aula": int(row[4]),
+                        "tipo": str(row[5]),
+                        "hora": str(row[6])
+                    }
+                    
+                    bitacora = Bitacora(**bitacora_dict)
+                    bitacora_list.append(bitacora)
+                
+                logging.info(
+                    f"Se obtuvo información bitacora de la clase con el ID: {id_clase}")
+                return bitacora_list
+            else:
+                return Response(status_code=HTTP_204_NO_CONTENT)
+    except Exception as exception_error:
+        logging.error(
+            f"Error al obtener información de la clase con el ID : {id_clase} ||| {exception_error}")
+        return Response(status_code=SERVER_ERROR)
+
+
+
+@bitacoraRouter.get("/bitacora/aula/{id_aula}", response_model=List[Bitacora])
 def get_bitacora_by_id(id_aula: int):
     try:
         with engine.connect() as conn:
@@ -126,6 +167,44 @@ def get_bitacora_by_id(id_aula: int):
     except Exception as exception_error:
         logging.error(
             f"Error al obtener información de la clase con el ID : {id_aula} ||| {exception_error}")
+        return Response(status_code=SERVER_ERROR)
+
+@bitacoraRouter.get("/bitacora/dia/{id_aula}/{dia}", response_model=List[Bitacora])
+def get_bitacora_by_id(id_aula: int, dia: str):
+    try:
+        with engine.connect() as conn:
+
+            dia = datetime.strptime(dia, '%Y-%m-%d').date()
+            print(dia)
+            sql = text(
+                f"select * from bitacoras where id_aula='{id_aula}' and DATE(hora)='{dia}'")
+
+            result = conn.execute(sql).fetchall()
+            print(result)
+            if(result):
+                bitacora_list = []
+                for row in result:
+                    bitacora_dict = {
+                        "id": int(row[0]),
+                        "id_aula": int(row[1]),
+                        "id_estudiante": row[2],
+                        "id_docente": row[3],
+                        "id_aula": int(row[4]),
+                        "tipo": str(row[5]),
+                        "hora": str(row[6])
+                    }
+                    
+                    bitacora = Bitacora(**bitacora_dict)
+                    bitacora_list.append(bitacora)
+                
+                logging.info(
+                    f"Se obtuvo información bitacora de la aula con el ID: {id_aula}")
+                return bitacora_list
+            else:
+                return Response(status_code=HTTP_204_NO_CONTENT)
+    except Exception as exception_error:
+        logging.error(
+            f"Error al obtener información de la aula con el ID : {id_aula} ||| {exception_error}")
         return Response(status_code=SERVER_ERROR)
 
 
