@@ -81,7 +81,7 @@ En caso de no funcionar se puede instalar las librerias principales:
 
 ## Construir la imagen apartir del archivo `Dockerfile`
 ~~~bash  
-   docker build -t uvirtual:0.1 .
+   sudo docker build -t uvirtual:0.1 .
 ~~~
 
 ## Verificar que se creó correctamente
