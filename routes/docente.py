@@ -240,7 +240,7 @@ def docentes_ingresar_al_sistema(docentes_auth: DocenteAuth):
             if result != None:
                 check_passw = check_password_hash(result[1], docentes_auth.contraseña)
                 if check_passw:
-                    print("entro")
+                    
                     return {
                         "status": 200,
                         "message": "Access success",
