@@ -20,6 +20,6 @@ class DocenteUpdate(BaseModel):
     foto_perfil: Optional[str]
     
 class DocenteAuth(BaseModel):
-    matricula: Optional[str]
+    id: Optional[str]
     correo : Optional[EmailStr]
     contraseña: str

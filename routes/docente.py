@@ -220,3 +220,48 @@ def update_docente(data_update: DocenteUpdate, id_docente: int):
         logging.error(
             f"Error al actualizar el docente con el ID: {id_docente} ||| {exception_error}")
         return Response(status_code=SERVER_ERROR)
+
+
+
+
+@docenteRouter.post("/docente/login", status_code=HTTP_201_CREATED)
+def docentes_ingresar_al_sistema(docentes_auth: DocenteAuth):
+    try:
+        with engine.connect() as conn:
+            if (docentes_auth.correo != None):
+                result = conn.execute(docentes.select().where(
+                    docentes.c.correo == docentes_auth.correo)).first()
+            if (docentes_auth.id != None):
+                result = conn.execute(docentes.select().where(
+                    docentes.c.id == docentes_auth.id)).first()
+
+            print(result)
+
+            if result != None:
+                check_passw = check_password_hash(result[1], docentes_auth.contraseña)
+                if check_passw:
+                    print("entro")
+                    return {
+                        "status": 200,
+                        "message": "Access success",
+                        "token": write_token(docentes_auth.dict()),
+                        "user": get_docente_by_id_docente(result[0])
+                    }
+                else:
+                    return Response(status_code=HTTP_401_UNAUTHORIZED)
+
+            else:
+                return Response(status_code=HTTP_204_NO_CONTENT)
+
+    except Exception as exception_error:
+        logging.error(
+            f"Error al ingresar docente al sistema ||| {exception_error}")
+        return Response(status_code=SERVER_ERROR)
+
+
+
+@docenteRouter.post("/docente/verify/token")
+def docentes_verificar_token(token_docente: str = Header(default=None)):
+    # token = user_token.split(' ')[1]
+    token = token_docente.split(" ")[0]
+    return validate_token(token_docente, output=True)
