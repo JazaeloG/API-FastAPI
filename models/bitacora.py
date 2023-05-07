@@ -11,9 +11,9 @@ bitacoras = Table("bitacoras", meta_data,
                       "estudiantes.id")),
                   Column('id_docente', Integer, ForeignKey(
                       "docentes.id")),
-                  Column('aula', Integer, ForeignKey(
+                  Column('id_aula', Integer, ForeignKey(
                       "aulas.id")),
-                  Column('tipo', String(2)),
+                  Column('tipo', String(1)),
                   Column('hora', DateTime)
                   )
 

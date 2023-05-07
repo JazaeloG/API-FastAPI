@@ -36,12 +36,13 @@ def get_bitacora():
             bitacora_list = []
             for row in result:
                 bitacora_dict = {
-                    "id": row[0],
-                    "id_clase": row[1],
+                    "id": int(row[0]),
+                    "id_clase": int(row[1]),
                     "id_estudiante": row[2],
                     "id_docente": row[3],
-                    "tipo": row[4],
-                    "hora": row[5]
+                    "id_aula": int(row[4]),
+                    "tipo": str(row[5]),
+                    "hora": str(row[6])
                 }
 
                 bitacora = Bitacora(**bitacora_dict)
@@ -58,37 +59,78 @@ def get_bitacora():
         return Response(status_code=SERVER_ERROR)
 
 
-@bitacoraRouter.get("/bitacora/bitacora/{id_clase}", response_model=Bitacora)
+@bitacoraRouter.get("/bitacora/bitacora/{id_clase}", response_model=List[Bitacora])
 def get_bitacora_by_id(id_clase: int):
     try:
         with engine.connect() as conn:
 
             result = conn.execute(bitacoras.select().where(
-                bitacoras.c.id_clase == id_clase)).first()
-
-            if result:
-                bitacora_dict = {
-                    "id": result[0],
-                    "id_clase": result[1],
-                    "id_estudiante": result[2],
-                    "id_docente": result[3],
-                    "tipo": result[4],
-                    "hora": result[5]
-                }
-                bitacora = Bitacora(**bitacora_dict)
+                bitacoras.c.id_clase == id_clase)).fetchall()
+            print(result)
+            if(result):
+                bitacora_list = []
+                for row in result:
+                    bitacora_dict = {
+                        "id": int(row[0]),
+                        "id_clase": int(row[1]),
+                        "id_estudiante": row[2],
+                        "id_docente": row[3],
+                        "id_aula": int(row[4]),
+                        "tipo": str(row[5]),
+                        "hora": str(row[6])
+                    }
+                    
+                    bitacora = Bitacora(**bitacora_dict)
+                    bitacora_list.append(bitacora)
+                
                 logging.info(
                     f"Se obtuvo información bitacora de la clase con el ID: {id_clase}")
-                return docente
+                return bitacora_list
             else:
                 return Response(status_code=HTTP_204_NO_CONTENT)
     except Exception as exception_error:
         logging.error(
-            f"Error al obtener información del docente con el ID : {id_clase} ||| {exception_error}")
+            f"Error al obtener información de la clase con el ID : {id_clase} ||| {exception_error}")
         return Response(status_code=SERVER_ERROR)
 
 
-@bitacoraRouter.post("/bitacora")
-def registrar_entrada(id_user: str, id_aula: int):
+@bitacoraRouter.get("/bitacora/bitacora/{id_aula}", response_model=List[Bitacora])
+def get_bitacora_by_id(id_aula: int):
+    try:
+        with engine.connect() as conn:
+
+            result = conn.execute(bitacoras.select().where(
+                bitacoras.c.id_aula == id_aula)).fetchall()
+            print(result)
+            if(result):
+                bitacora_list = []
+                for row in result:
+                    bitacora_dict = {
+                        "id": int(row[0]),
+                        "id_aula": int(row[1]),
+                        "id_estudiante": row[2],
+                        "id_docente": row[3],
+                        "id_aula": int(row[4]),
+                        "tipo": str(row[5]),
+                        "hora": str(row[6])
+                    }
+                    
+                    bitacora = Bitacora(**bitacora_dict)
+                    bitacora_list.append(bitacora)
+                
+                logging.info(
+                    f"Se obtuvo información bitacora de la clase con el ID: {id_aula}")
+                return bitacora_list
+            else:
+                return Response(status_code=HTTP_204_NO_CONTENT)
+    except Exception as exception_error:
+        logging.error(
+            f"Error al obtener información de la clase con el ID : {id_aula} ||| {exception_error}")
+        return Response(status_code=SERVER_ERROR)
+
+
+@bitacoraRouter.post("/bitacora/{id_user}/{id_aula}/{id_clase}")
+def registrar_entrada(id_user: str, id_aula: int, id_clase: int):
     try:
         with engine.connect() as conn:
 
@@ -97,22 +139,53 @@ def registrar_entrada(id_user: str, id_aula: int):
 
             new_bitacora = Bitacora
             if result is not None:
-                print("alumno")
                 new_bitacora.id_estudiante = result.id
+                entrada = conn.execute(bitacoras.select().where(bitacoras.c.id_estudiante==result.id and bitacoras.c.id_aula == id_aula).order_by(bitacoras.c.hora.desc())).first()
+                tipo= "Student"
             else:
                 result = conn.execute(docentes.select().where(
                 docentes.c.id == id_user)).first()
-            if result is not None:
-                print("docente")
-                new_bitacora.id_docente = result.id
-
+                if result is not None:
+                    print("docente")
+                    new_bitacora.id_docente = result.id
+                    entrada = conn.execute(bitacoras.select().where(bitacoras.c.id_docente==result.id and bitacoras.c.id_aula == id_aula).order_by(bitacoras.c.hora.desc())).first()
+                    tipo="Docente"
             if result is None:
                 return Response(status_code=HTTP_204_NO_CONTENT)
             
-            hora_actual = datetime.now().time()
-            print("La hora actual es:", hora_actual)
-            print(result)
-
+            new_bitacora.id_clase=id_clase
+            new_bitacora.id_aula=id_aula
+            if entrada is None:
+                new_bitacora.tipo=str("E")
+                print("entro")
+            elif entrada.tipo==str("S"):
+                new_bitacora.tipo= str("E")
+                print("entroa")
+            elif entrada.tipo == str("E"):
+                new_bitacora.tipo= str("S")
+                print("salio")
+            print(entrada.tipo)
+            new_bitacora.hora = datetime.now()  
+            print(new_bitacora.hora)
+            print("holi")
+            if tipo =="Student":
+                result = conn.execute(bitacoras.insert().values(
+                    id_clase = new_bitacora.id_clase,
+                    id_estudiante = new_bitacora.id_estudiante,
+                    id_aula = new_bitacora.id_aula,
+                    tipo = new_bitacora.tipo,
+                    hora = new_bitacora.hora
+                ))
+            elif tipo == "Docente":
+                result = conn.execute(bitacoras.insert().values(
+                    id_clase = new_bitacora.id_clase,
+                    id_docente = new_bitacora.id_docente,
+                    id_aula = new_bitacora.id_aula,
+                    tipo = new_bitacora.tipo,
+                    hora = new_bitacora.hora
+                ))
+            conn.commit()
+            return result
     except Exception as exception_error:
         logging.error(
             f"Error al crear la clase  ||| {exception_error}")
