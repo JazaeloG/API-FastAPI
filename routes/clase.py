@@ -14,6 +14,8 @@ from functions_jwt import write_token, validate_token
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 
+from sqlalchemy.sql import text
+
 from models.horarioEstudiante import horarioEstudiantes
 from schemas.horarioEstudiante import HorarioEstudiante
 from models.aula import aulas
@@ -165,17 +167,23 @@ def clases_ingresar_al_sistema(estudiantes_auth: EstudianteAuth):
                             ))
                             conn.commit()
                             edif = conn.execute(edificios.select().where(edificios.c.nombre == detalles["general"]["edificio"])).first()
-                       
-                        res= conn.execute(aulas.select().where(
-                            aulas.c.nombre == detalles["general"]["aula"])).first()
+                        print("__EDIFICIO")
+                        print(edif)
+                        print(edif.id)
+                        n_aula = detalles["general"]["aula"]
+                        sql = text(f"select * from aulas where aulas.nombre = '{n_aula}' and aulas.id_edificio = '{edif.id}'")
+                        #res= conn.execute(aulas.select().where(aulas.c.nombre ==  and aulas.c.id_edificio == edif.id)).first()
+                        res = conn.execute(sql).first()
+                        print("_______________")
                         print(res)
+                        print("________________")
                         if res is None:
                             print("aulas")
                             conn.execute(aulas.insert().values(
                                 nombre=detalles["general"]["aula"],
                                 id_edificio=edif.id
                                 ))
-                        
+
                         conn.commit()
 
                         print("clases")
@@ -223,27 +231,30 @@ def clases_ingresar_al_sistema(estudiantes_auth: EstudianteAuth):
                             logging.info(
                                 f"Clase {new_clase.nombre} creada correctamente")
 
-                        print("guardar horario :)")
-                        result = conn.execute(estudiantes.select().where(
-                            estudiantes.c.matricula == estudiantes_auth.matricula)).first()
-                        id_estudiante = result.id
-                        result = conn.execute(clases.select().where(
-                            clases.c.nrc == nrc)).first()
-                        id_clase = result.id
-                        result = conn.execute(horarioEstudiantes.insert().values(
-                            id_estudiante=id_estudiante,
-                            id_clase=id_clase
-                        ))
-                        print("guardar aula :)")
-                        conn.commit()
-                        result = conn.execute(aulas.select().where(
-                            aulas.c.nombre == detalles["general"]["aula"])).first()
-                        print(result.id)
-                        print(id_clase)
-                        result = conn.execute(horarioAulas.insert().values(
-                            id_aula=result.id,
-                            id_clase= id_clase))
-                        conn.commit()
+                            print("guardar horario :)")
+                            result = conn.execute(estudiantes.select().where(
+                                estudiantes.c.matricula == estudiantes_auth.matricula)).first()
+                            id_estudiante = result.id
+                            result = conn.execute(clases.select().where(
+                                clases.c.nrc == nrc)).first()
+                            id_clase = result.id
+                            result = conn.execute(horarioEstudiantes.insert().values(
+                                id_estudiante=id_estudiante,
+                                id_clase=id_clase
+                            ))
+                            print("guardar aula :)")
+                            conn.commit()
+                                
+                            n_aula = detalles["general"]["aula"]
+                            sql = text(f"select * from aulas where aulas.nombre = '{n_aula}' and aulas.id_edificio = '{edif.id}'")
+                            #res= conn.execute(aulas.select().where(aulas.c.nombre ==  and aulas.c.id_edificio == edif.id)).first()
+                            result = conn.execute(sql).first()
+                            print(result.id)
+                            print(id_clase)
+                            result = conn.execute(horarioAulas.insert().values(
+                                id_aula=result.id,
+                                id_clase= id_clase))
+                            conn.commit()
 
                     return {
                         "status": 200,

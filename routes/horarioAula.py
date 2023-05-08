@@ -106,8 +106,8 @@ def get_clase_by_id_aula_hour(id_aula: int):
             dia_semana_num = ahora.weekday()
             dias_semana = ['lunes', 'martes', 'miercoles',
                            'jueves', 'viernes', 'sabado', 'domingo']
-            # dia_semana_nombre = dias_semana[dia_semana_num] #dia real
-            dia_semana_nombre = "lunes" # dia de prueba
+            dia_semana_nombre = dias_semana[dia_semana_num] #dia real
+            #dia_semana_nombre = "lunes" # dia de prueba
 
             if result:
                 clases_list = []
@@ -140,8 +140,8 @@ def get_clase_by_id_aula_hour(id_aula: int):
                         hora_fin = datetime.strptime(hora_fin_str, "%H:%M")
                         hora_fin = hora_fin.strftime('%H:%M')
                         ahora_time = ahora.strftime('%H:%M')
-                        # print(ahora_time) # hora real
-                        ahora_time = "11:00"  # hora de prueba
+                        print(ahora_time) # hora real
+                        #ahora_time = "11:00"  # hora de prueba
                         ahora_time = datetime.strptime(ahora_time, '%H:%M')
                         ahora_time = ahora_time.strftime('%H:%M')
                         # Verificar si la hora actual está dentro del rango de tiempo
