@@ -34,20 +34,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(estudianteRouter, prefix='/api/v1', tags=["Estudiantes"])
-app.include_router(claseRouter, prefix='/api/v1', tags=["Clases"])
-app.include_router(docenteRouter, prefix='/api/v1', tags=["Docentes"])
-app.include_router(horarioEstudiateRouter, prefix='/api/v1',
+app.include_router(estudianteRouter, tags=["Estudiantes"])
+app.include_router(claseRouter, tags=["Clases"])
+app.include_router(docenteRouter, tags=["Docentes"])
+app.include_router(horarioEstudiateRouter,
                    tags=["Horario Estudiante"])
-app.include_router(horarioDocenteRouter, prefix='/api/v1',
+app.include_router(horarioDocenteRouter,
                    tags=["Horario Docente"])
-app.include_router(edificioRouter, prefix='/api/v1', tags=["Edificio"])
-app.include_router(aulaRouter, prefix='/api/v1', tags=["Aula"])
-app.include_router(horarioAulaRouter, prefix='/api/v1', tags=["Aula"])
+app.include_router(edificioRouter, tags=["Edificio"])
+app.include_router(aulaRouter, tags=["Aula"])
+app.include_router(horarioAulaRouter, tags=["Aula"])
 
 
-app.include_router(bitacoraRouter, prefix='/api/v1', tags=["Bitacoras"])
-app.include_router(horarioAulaRouter, prefix='/api/v1', tags=["Aula"])
+app.include_router(bitacoraRouter, tags=["Bitacoras"])
+app.include_router(horarioAulaRouter, tags=["Aula"])
 
 if __name__ == "__main__":
     # uvicorn.run(app, port=8080, host="0.0.0.0")

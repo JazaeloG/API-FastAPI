@@ -1,0 +1,97 @@
+name: release CI, CD workflow 
+on: 
+  push:
+    branches: [ "master"]
+  pull_request:
+    branches: [ "master"]
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.7.2
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7.2'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+     - name: Create .env file
+        run: |
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+          echo "LOCAL_DB_USER=${{ secrets.LOCAL_DB_USER }}" >> .env
+          echo "LOCAL_DB_PASSWORD=${{ secrets.LOCAL_DB_PASSWORD }}" >> .env
+          echo "LOCAL_DB_HOST=${{ secrets.LOCAL_DB_HOST }}" >> .env
+          echo "LOCAL_DB_PORT=${{ secrets.LOCAL_DB_PORT }}" >> .env
+          echo "LOCAL_DB_NAME=${{ secrets.LOCAL_DB_NAME }}" >> .env
+      
+      - name: show dir, .env file
+        run: |
+          ls -la 
+          
+      - name: download httpd image, container name serving_base
+        run: |
+          docker run -d --name serving_base httpd
+          
+      - name: start MySQL container
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.LOCAL_DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.LOCAL_DB_NAME }}
+          MYSQL_USER: ${{ secrets.LOCAL_DB_USER }}
+          MYSQL_PASSWORD: ${{ secrets.LOCAL_DB_PASSWORD }}
+        run: |
+          docker run -d \
+            --name mysql \
+            -e MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD \
+            -e MYSQL_DATABASE=$MYSQL_DATABASE \
+            -e MYSQL_USER=$MYSQL_USER \
+            -e MYSQL_PASSWORD=$MYSQL_PASSWORD \
+            mysql:8.0
+          
+          
+      - name: Build the custom Docker image
+        run: docker commit --change "ENV MODEL_NAME ${{secrets.MODEL_NAME}}" serving_base ${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}:${{github.sha}}
+
+      - name: show docker images
+        run: docker images
+
+      - name: docker login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+          
+      - name: Docker Push
+        run: docker push ${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}:${{github.sha}}
+      
+      - name: update docker user in k8 
+        run: sed -i 's/{docker_user}/${{secrets.DOCKER_USER}}/g' manifests/k8s.yaml
+
+      - name: update model name in k8 
+        run: sed -i 's/{model_name}/${{secrets.MODEL_NAME}}/g' manifests/k8s.yaml
+
+      - name: update _ by - 
+        run: sed -i 's/_/-/g' manifests/k8s.yaml
+
+      - name: update sha in k8
+        run: sed -i 's/{github.sha}/${{github.sha}}/g' manifests/k8s.yaml
+
+      - name: ls -la 
+        run: cat manifests/k8s.yaml
+      - uses: okteto/context@2.7.0
+        with:
+          token: ${{secrets.OKTETO_TOKEN }}
+
+      - name: Deploy and Wait
+        uses: okteto/actions/deploy@v1
+        env:
+          KUBECONFIG: ${{ steps.namespace.outputs.kubeconfig }}
+        with:
+          namespace: ${{secrets.OKTETO_NAMESPACE }}
+          manifest: manifests/k8s.yaml
+          tag: ${{ secrets.DOCKER_USERNAME }}/${{secrets.MODEL_NAME}}:${{github.sha}}
