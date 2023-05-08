@@ -33,10 +33,6 @@ jobs:
         run: |
           ls -la 
           
-      - name: download httpd image, container name serving_base
-        run: |
-          docker run -d --name serving_base httpd
-          
       - name: start MySQL container
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.LOCAL_DB_PASSWORD }}
@@ -51,7 +47,15 @@ jobs:
             -e MYSQL_USER=$MYSQL_USER \
             -e MYSQL_PASSWORD=$MYSQL_PASSWORD \
             mysql:8.0
+
+      - name: Create volume
+        run: |
+          kubectl create -f manifests/volume.yaml
           
+          
+      - name: download httpd image, container name serving_base
+        run: |
+          docker run -d --name serving_base httpd
           
       - name: Build the custom Docker image
         run: docker commit --change "ENV MODEL_NAME ${{secrets.MODEL_NAME}}" serving_base ${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}:${{github.sha}}
