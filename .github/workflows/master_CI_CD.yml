@@ -47,10 +47,6 @@ jobs:
             -e MYSQL_USER=$MYSQL_USER \
             -e MYSQL_PASSWORD=$MYSQL_PASSWORD \
             mysql:8.0
-
-      - name: Create volume
-        run: |
-          kubectl create -f manifests/k8s.yaml
           
           
       - name: download httpd image, container name serving_base
