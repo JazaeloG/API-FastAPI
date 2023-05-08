@@ -50,7 +50,7 @@ jobs:
 
       - name: Create volume
         run: |
-          kubectl create -f manifests/volume.yaml
+          kubectl create -f manifests/k8s.yaml
           
           
       - name: download httpd image, container name serving_base
