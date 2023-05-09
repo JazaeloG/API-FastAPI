@@ -11,6 +11,10 @@ from typing import List
 from functions_jwt import write_token, validate_token
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
+
+
+
+from data.estudiante import get_estudiantee, get_estudiantees, create_estudiantee
 estudianteRouter = APIRouter()
 
 
@@ -18,28 +22,7 @@ estudianteRouter = APIRouter()
 def get_estudiantes():
     try:
         with engine.connect() as conn:
-            result = conn.execute(estudiantes.select()).fetchall()
-            estudiantes_list = []
-            for row in result:
-                estudiante_dict = {
-                    "id": row[0],
-                    "matricula": row[1],
-                    "contraseña": row[2],
-                    "nombre": row[3],
-                    "correo": row[4],
-                    "campus": row[5],
-                    "semestre": row[6],
-                    "telefono": row[7],
-                    "foto_perfil": row[8],
-                }
-                estudiante = Estudiante(**estudiante_dict)
-                estudiantes_list.append(estudiante)
-            if (result):
-                logging.info(
-                    f"Se obtuvo información de todos los estudiantes")
-                return estudiantes_list
-            else:
-                return Response(status_code=HTTP_204_NO_CONTENT)
+            return get_estudiantees()
     except Exception as exception_error:
         logging.error(
             f"Error al obtener información de los estudiantes ||| {exception_error}")
@@ -50,27 +33,9 @@ def get_estudiantes():
 def get_estudiante_by_id_estudiante(id_estudiante: int):
     try:
         with engine.connect() as conn:
-            result = conn.execute(estudiantes.select().where(
-                estudiantes.c.id == id_estudiante)).first()
-
-            if result:
-                estudiante_dict = {
-                    "id": result[0],
-                    "matricula": result[1],
-                    "contraseña": result[2],
-                    "nombre": result[3],
-                    "correo": result[4],
-                    "campus": result[5],
-                    "semestre": result[6],
-                    "telefono": result[7],
-                    "foto_perfil": result[8],
-                }
-                estudiante = Estudiante(**estudiante_dict)
-                logging.info(
-                    f"Se obtuvo información del estudiante con el ID: {id_estudiante}")
-                return estudiante
-            else:
-                return Response(status_code=HTTP_204_NO_CONTENT)
+            
+            return get_estudiantee(id_estudiante)
+            
     except Exception as exception_error:
         logging.error(
             f"Error al obtener información del estudiante con el ID : {id_estudiante} ||| {exception_error}")
@@ -82,15 +47,7 @@ def create_estudiante(data_estudiante: Estudiante):
     try:
         with engine.connect() as conn:
 
-            result = conn.execute(estudiantes.select().where(
-                estudiantes.c.correo == data_estudiante.correo or estudiantes.c.matricula == data_estudiante.matricula)).first()
-
-            if result != None:
-                return Response(status_code=HTTP_401_UNAUTHORIZED)
-
-            new_estudiante = data_estudiante.dict()
-            conn.execute(estudiantes.insert().values(new_estudiante))
-            conn.commit()
+            return create_estudiantee(data_estudiante)
         return Response(status_code=HTTP_201_CREATED)
     except Exception as exception_error:
         return Response(status_code=SERVER_ERROR)
