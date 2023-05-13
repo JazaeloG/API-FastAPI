@@ -17,6 +17,9 @@ from sqlalchemy.sql import text
 from models.horarioDocente import horarioDocentes
 from schemas.horarioDocente import HorarioDocente
 
+
+
+from data.horarioDocente import get_horarioDocentees
 horarioDocenteRouter = APIRouter()
 
 
@@ -24,25 +27,7 @@ horarioDocenteRouter = APIRouter()
 def get_horarioDocente():
     try:
         with engine.connect() as conn:
-            result = conn.execute(horarioDocentes.select()).fetchall()
-            print(result)
-            horario_list = []
-            for row in result:
-                horario_dict = {
-                    "id": row[0],
-                    "id_docente": row[1],
-                    "id_clase": row[2]
-                }
-                print(horario_dict)
-                horario = HorarioDocente(**horario_dict)
-                print(horario)
-                horario_list.append(horario_dict)
-    
-            if (result):
-                logging.info(f"Se obtuvo información de todas las clases")
-                return horario_list
-            else:
-                return Response(status_code=HTTP_204_NO_CONTENT)
+            return get_horarioDocentees()
     except Exception as exception_error:
         logging.error(
             f"Error al obtener información de las clases ||| {exception_error}")
